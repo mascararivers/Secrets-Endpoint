@@ -1,6 +1,7 @@
-use std::sync::LazyLock;
+use std::{sync::LazyLock, time::Duration};
 
 use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
+use moka::future::Cache;
 use regex::Regex;
 use serde::Deserialize;
 
@@ -23,9 +24,9 @@ async fn get_secrets(query: web::Query<SecretQuery>) -> impl Responder {
     let uuid = query.uuid.clone();
 
     // self-explanatory
-    if let Some(cached) = SECRET_CACHE.get(&uuid) {
+    if let Some(cached) = SECRET_CACHE.get(&uuid).await {
         return HttpResponse::Ok().body(format!("{} (cached)", cached));
-    }
+    };
 
     // or else do the web request
     let client = reqwest::Client::new();
